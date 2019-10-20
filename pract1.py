@@ -166,9 +166,7 @@ def pirLaplaciana(imagen, niveles):
 
 #PRUEBA EJERCICIOS
 
-rutaImagen = 'C:\\Users\\Paula\\Documents\\VC\\practica1\\images\\cat.bmp'
-#imagen = leeImagen(rutaImagen, False)
-imagen = cv2.imread(rutaImagen, 0)
+
 #print(imagen)
 #f, c, ch = imagen.shape
 #print(ch)
@@ -406,8 +404,8 @@ def circulos(imagen,sigma):
     return imagen
                 
                 
-img = busquedaRegiones(imagen, 3, 3)
-plt.imshow(img, cmap="gray")
+#img = busquedaRegiones(imagen, 3, 3)
+#plt.imshow(img, cmap="gray")
 
 #Comprobamos los inicios y los finales
 #            if (i-1)>=0:    inicio_i = i-1
@@ -482,3 +480,55 @@ plt.imshow(img, cmap="gray")
 #print("final")
 #print(final_i) 
 #print(kernel[inicio_i:final_i+1,inicio_j:final_j+1])        
+            
+def imagenesHibridas(img1, img2, lFreq, hFreq):
+    # Obtenemos I1 (baja frecuencia)
+    g1 = cv2.getGaussianKernel(lFreq, -1)
+    i1 = cv2.sepFilter2D(img1, -1, g1, g1)
+    # Obtenemos I2 (alta frecuencia)
+    g2 = cv2.getGaussianKernel(hFreq, -1)
+    g2 = cv2.sepFilter2D(img2, -1, g2, g2)
+    i2 =  img2 - g2
+    # Hibridamos Imagen I1+I2
+    h = i1-i2
+    return h
+
+rutaImagen = 'C:\\Users\\Paula\\Documents\\VC\\practica1\\images\\bird.bmp'
+#imagen = leeImagen(rutaImagen, False)
+img1 = cv2.imread(rutaImagen, 0)
+rutaImagen = 'C:\\Users\\Paula\\Documents\\VC\\practica1\\images\\plane.bmp'
+img2 =cv2.imread(rutaImagen, 0)
+
+img1 = img1/255.0
+img2 = img2/255.0
+
+lFreq = 41
+hFreq = 31
+g1 = cv2.getGaussianKernel(lFreq, -1)
+i1 = cv2.sepFilter2D(img1, -1, g1, g1)
+#plt.imshow(i1, cmap="gray")
+# Obtenemos I2 (alta frecuencia)
+g2 = cv2.getGaussianKernel(hFreq, -1)
+g2 = cv2.sepFilter2D(img2, -1, g2, g2)
+i2 =  img2 - g2
+#plt.imshow(i2, cmap="gray")
+# Hibridamos Imagen I1+I2
+h = i1+i2
+#plt.imshow(h, cmap="gray")
+#ht = (np.clip(h,0,1)*255.).astype(np.uint8)
+plt.imshow(h, cmap="gray")
+
+
+def multIM(img,nfil,ncol,tamx,tamy,color=True):
+    fig=plt.figure(figsize=(tamx, tamy))
+    for i,im in enumerate(img):
+        fig.add_subplot(nfil, ncol, i+1)
+        imgt = (np.clip(im,0,1)*255.).astype(np.uint8)
+        if color:
+            nimg = cv2.cvtColor(imgt, cv2.COLOR_BGR2RGB)
+        else:
+            nimg = cv2.cvtColor(imgt,cv2.COLOR_GRAY2RGB)
+        plt.imshow(nimg)
+    plt.show()
+    
+    
