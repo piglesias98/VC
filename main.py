@@ -112,10 +112,10 @@ def convolucion(imagen, kernelx, kernely, border=cv2.BORDER_DEFAULT, normalize=T
     img = np.copy(imagen)
     height, width = imagen.shape[:]
     for i in range(height):
-        resConv = cv2.filter2D(img[i, :], -1, kernelx, borderType=border)
+        resConv = cv2.filter2D(img[i, :], -1, kernelx, border)
         img[i, :] = [sublist[0] for sublist in resConv]
     for j in range(width):
-        resConv = cv2.filter2D(img[:, j], -1, kernely, borderType=border)
+        resConv = cv2.filter2D(img[:, j], -1, kernely, border)
         img[:, j] = [sublist[0] for sublist in resConv]
     if normalize:
         cv2.normalize(img, img, 0, 255, cv2.NORM_MINMAX)
@@ -224,6 +224,62 @@ def show_pyr(imgs):
 
     return img
 
+def display_piramide(img,color=True):
+    
+    for im in img:
+        imgt = (np.clip(im,0,1)*255.).astype(np.uint8)
+        if color:
+            nimg = cv2.cvtColor(imgt, cv2.COLOR_BGR2RGB)
+        else:
+            nimg = cv2.cvtColor(imgt,cv2.COLOR_GRAY2RGB)
+        dpi = 50
+        height, width, depth = nimg.shape
+    
+        # What size does the figure need to be in inches to fit the image?
+        figsize = width / float(dpi), height / float(dpi)
+    
+        # Create a figure of the right size with one axes that takes up the full figure
+        plt.figure(figsize=figsize)
+        #ax = fig.add_axes([0, 0, 1, 1])
+    
+        # Hide spines, ticks, etc.
+        #ax.axis('off')
+    
+        # Display the image.
+        plt.imshow(nimg)
+    plt.show()
+
+
+def sobremuestrearDuplicar(imagen):
+    height, width = imagen.shape
+    
+    #duplicamos las filas
+    drows =np.concatenate(([imagen[0]], [imagen[0]]), axis=0)
+    for i in range(1, height):
+        row =np.concatenate(([imagen[i]], [imagen[i]]), axis=0)
+        drows= np.append(drows, row, axis=0)
+        
+    #duplicamos las columnas
+    dcols = np.concatenate(([drows[:,0]], [drows[:,0]]), axis=0)
+    for j in range(1, width):
+        col = np.concatenate(([drows[:,j]], [drows[:,j]]), axis=0)
+        dcols= np.append(dcols, col, axis=0)
+        
+    return gaussiana(dcols.T, 3, -1)
+
+def piramideLaplaciana(imagen, niveles):
+    pg = piramideGauss(imagen, niveles)
+    pl = [pg[niveles]]
+    for i in range(niveles, 0, -1):
+        gUp = sobremuestrearDuplicar(pg[i])
+        height, width = pg[i-1].shape[:2]
+        gUpRes = cv2.resize(gUp, (width, height))
+        l = cv2.subtract(pg[i-1], gUpRes)
+        #l = convolucionGaussiana(l, 3, -1)
+        pl.append(l)
+    return pl
+
+
 
 #EJERCICIO 1 Aol
 def ejercicio1a():
@@ -314,12 +370,33 @@ def ejercicio2a():
     titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
     
     representarImagenes(imgs, titulos, 1)
-    #plt.imshow(img)
 
 
+def ejercicio2b():
+    print("Ejercicio 2 - Apartado B")
+    print("Piramide laplaciana")
+    print()
+    
+    piramide = piramideLaplaciana(pez, 4)
+    
+#    display_piramide(piramide, False)
+    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect", "a","a"]
+    representarImagenes(piramide, titulos, 1)
+#    piramide = piramideLaplaciana(perro, 4, cv2.BORDER_REPLICATE)
+    
+#    imgs.append(show_pyr(piramideLaplaciana(pez, 4, cv2.BORDER_REPLICATE)))
+#
+#    imgs.append(show_pyr(piramideLaplaciana(pez, 4, cv2.BORDER_REFLECT)))
+#    
+#    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
+#    
+#    representarImagenes(imgs, titulos, 1)
+#    
     
 #ejercicio1a()
 #input("Pulse ENTER para continuar")
 #ejercicio1b()
 #input("Pulse ENTER para continuar")
-ejercicio2a()
+#ejercicio2a()
+#input("Pulse ENTER para continuar")
+ejercicio2b()
