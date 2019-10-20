@@ -154,9 +154,75 @@ def laplacianaGaussiana(imagen, tam, sigma, borde=cv2.BORDER_DEFAULT):
     cv2.normalize(img3, img3, 0, 255, cv2.NORM_MINMAX)
     return img3
 
-#Leer imágenes
 
+def submuestrear(imagen):
+    down =imagen[::2, ::2]
+    return down
 
+def piramideGauss(imagen, niveles, borde=cv2.BORDER_DEFAULT):
+    g = imagen.copy()
+    gp = [imagen] #crea un array
+    for i in range(niveles):
+        g = gaussiana(g, 1, borde)
+        g = submuestrear(g)
+        gp.append(g)
+    return gp
+
+def show_pyr(imgs):
+    """
+
+    Función que muestra una serie de imágenes que recibe en una lista por
+    parámetro en forma de pirámide.
+    Como requisito para su correcto funcionamiento, las imágenes deben
+    decrementar su tamaño en la mitad a medida que ocupan una posición posterior
+    en la lista.
+
+    Devuelve una sola imagen con forma de pirámide donde se encuentran todas las
+    recibidas.
+
+    """
+
+    # Se crea una imagen inicialmente vacía que albergará todas las subimágenes
+    # que se reciben.
+    # El ancho de la imagen general será el ancho de la primera más el ancho
+    # de la segunda (que será la mitad de la primera).
+
+    # El ancho se calcula como len(img[0])+len(img[0])*0.5
+    shape = imgs[0].shape
+
+    height = shape[0]
+    width = shape[1]
+
+    # Se crea la imagen general con las medidas para que entren todas
+    img = np.zeros((height, width+math.ceil(width*0.5)))
+
+    # Se copia la primera imagen desde el punto de partida hasta el tamaño que
+    # tiene
+    img[0:height, 0:width] = imgs[0]
+
+    # Se guarda la posición desde donde deben comenzar las imágenes
+    init_col = width
+    init_row = 0
+
+    # Número de imágenes
+    num_imgs = len(imgs)
+
+    # Se recorren el resto de imágenes para colocarlas donde corresponde
+    for i in range(1, num_imgs):
+
+        # Se consigue el tamaño de la imagen actual
+        shape = imgs[i].shape
+
+        height = shape[0]
+        width = shape[1]
+
+        # Se hace el copiado de la imagen actual como se ha hecho con la primera
+        img[init_row:init_row+height, init_col:init_col+width] = imgs[i]
+
+        # Se aumenta el contador desde donde se colocará la siguiente imagen
+        init_row += height
+
+    return img
 
 
 #EJERCICIO 1 Aol
@@ -230,7 +296,30 @@ def ejercicio1b():
     titulos.clear()
     
     
+def ejercicio2a():
+    print("Ejercicio 2 - Apartado A")
+    print("Piramide de gaussiana")
+    print()
+    
+    piramide = piramideGauss(perro, 4)
+    
+    imgs = [show_pyr(piramide)]
+    
+    piramide = piramideGauss(perro, 4, cv2.BORDER_REPLICATE)
+    
+    imgs.append(show_pyr(piramideGauss(perro, 4, cv2.BORDER_REPLICATE)))
+
+    imgs.append(show_pyr(piramideGauss(perro, 4, cv2.BORDER_REFLECT)))
+    
+    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
+    
+    representarImagenes(imgs, titulos, 1)
+    #plt.imshow(img)
+
+
+    
 #ejercicio1a()
 #input("Pulse ENTER para continuar")
-ejercicio1b()
-input("Pulse ENTER para continuar") 
+#ejercicio1b()
+#input("Pulse ENTER para continuar")
+ejercicio2a()
