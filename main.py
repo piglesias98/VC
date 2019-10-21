@@ -158,11 +158,11 @@ def submuestrear(imagen):
     down =imagen[::2, ::2]
     return down
 
-def piramideGauss(imagen, niveles, borde=cv2.BORDER_DEFAULT):
+def piramideGauss(imagen, niveles, sigma=1, borde=cv2.BORDER_DEFAULT):
     g = imagen.copy()
     gp = [imagen] #crea un array
     for i in range(niveles):
-        g = gaussiana(g, 1, borde)
+        g = gaussiana(g, sigma, borde)
         g = submuestrear(g)
         gp.append(g)
     return gp
@@ -476,7 +476,11 @@ def ejercicio3b():
     print("Pirámides híbridas")
     print()
     
+    #Ejemplo pájaro avión
+    i1, i2, h = imagenesHibridas(pajaro ,avion, 5, 3)
+    pir = piramideGauss(h, 4, 5)
     
+    representarImagenes([show_pyr(pir)], ["piramide"])
     
 #ejercicio1a()
 #input("Pulse ENTER para continuar")
