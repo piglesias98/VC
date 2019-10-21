@@ -267,6 +267,62 @@ def piramideLaplaciana(imagen, niveles, borde= cv2.BORDER_DEFAULT):
     pl = np.flip(pl)
     return pl
 
+def busquedaRegiones(imagen, escalas, sigma):
+    img = np.copy(imagen)
+    for i in range(escalas):
+        imgG = convolucionGaussiana(img, sigma, -1)
+        imgL = convolucionLaplaciana(imgG, sigma)
+        #imgL = cv2.Laplacian(imgG, sigma)
+        nImg= np.copy(imgL)
+        nImg = cv2.normalize(imgL,  nImg, 0, 255, cv2.NORM_MINMAX)
+        #Aplicamos el cuadrado
+        cImg=np.copy(nImg)
+        cImg = np.square(nImg)
+    #Realizamos la supresión de no máximos
+    sImg = np.copy(cImg)
+    sImg= supresionNoMaximos(cImg)
+    #Mostrar las regiones encontradas con sus correspondientes escalas
+    return circulos(sImg, sigma)
+
+
+def supresionNoMaximos(imagen):
+    height, width = imagen.shape[:2]
+    nueva= np.copy(imagen)
+    #Recorremos cada pixel
+    for i in range(height):
+        for j in range(width):
+            nueva[i-1:i+2, j-1:j+2] = np.where(imagen[i-1:i+2, j-1:j+2] > imagen[i,j], 0, nueva[i-1:i+2, j-1:j+2])
+    return nueva
+
+def circulos(imagen,sigma):
+    img = np.copy(imagen)
+    height, width = imagen.shape[:2]
+    #Recorremos cada pixel
+    for i in range(height):
+        for j in range(width):
+            if img[i,j]>124:
+                radio = int(math.sqrt(2) * sigma)
+                color = (255, 0, 0)
+                cv2.circle(img, (i,j), radio, color)
+    return img
+
+def imagenesHibridas(imagen1, imagen2, lFreq, hFreq):
+    img1= np.copy(imagen1)
+    img2 = np.copy(imagen2)
+    # Obtenemos I1 (baja frecuencia)
+#    g1 = cv2.getGaussianKernel(lFreq, -1)
+#    i1 = cv2.sepFilter2D(img1, -1, g1, g1)
+    i1 = gaussiana(img1, lFreq)
+    # Obtenemos I2 (alta frecuencia)
+#    g2 = cv2.getGaussianKernel(hFreq, -1)
+#    g2 = cv2.sepFilter2D(img2, -1, g2, g2)
+    g2 = gaussiana(img2, hFreq)
+    i2 =  img2 - g2
+    # Hibridamos Imagen I1+I2
+    h = i1+i2
+    return i1, i2, h
+
+
 
 
 #EJERCICIO 1 Aol
@@ -358,6 +414,8 @@ def ejercicio2a():
     titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
     
     representarImagenes(imgs, titulos, 1)
+    titulos.clear()
+    piramide.clear()
 
 
 def ejercicio2b():
@@ -378,8 +436,47 @@ def ejercicio2b():
     titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
     
     representarImagenes(imgs, titulos, 1)
+    imgs.clear()
+    piramide.clear()
 
-#    
+
+def ejercicio2c():
+    print("Ejercicio 2 - Apartado C")
+    print("Búsqueda de regiones")
+    print()
+    
+    
+def ejercicio3a():
+    print("Ejercicio 3 - Apartado A")
+    print("Imágenes híbridas")
+    print()
+    
+    #Ejemplo perro gato
+    i1, i2, h = imagenesHibridas(gato ,perro, 5, 9)
+    titulos = ["Baja", "Alta", "Híbrida"]
+    representarImagenes([i1, i2, h], titulos, 3)
+    
+    #Ejemplo Einstein Marilyn
+    i1, i2, h = imagenesHibridas(marilyn ,einstein, 3, 3)
+    titulos = ["Baja", "Alta", "Híbrida"]
+    representarImagenes([i1, i2, h], titulos, 3)
+    
+    #Ejemplo pez submarino
+    i1, i2, h = imagenesHibridas(submarino ,pez, 5, 7)
+    titulos = ["Baja", "Alta", "Híbrida"]
+    representarImagenes([i1, i2, h], titulos, 3)
+    
+    #Ejemplo pájaro avión
+    i1, i2, h = imagenesHibridas(pajaro ,avion, 5, 7)
+    titulos = ["Baja", "Alta", "Híbrida"]
+    representarImagenes([i1, i2, h], titulos, 3)
+    
+def ejercicio3b():
+    print("Ejercicio 3 - Apartado B")
+    print("Pirámides híbridas")
+    print()
+    
+    
     
 #ejercicio1a()
 #input("Pulse ENTER para continuar")
@@ -389,3 +486,6 @@ def ejercicio2b():
 #input("Pulse ENTER para continuar")
 #ejercicio2b()
 #input("Pulse ENTER para continuar")
+#ejercicio3a()
+#input("Pulse ENTER para continuar")
+ejercicio3b()
