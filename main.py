@@ -9,7 +9,6 @@ Created on Sun Oct 20 14:22:29 2019
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
-import copy
 import math
 
 """
@@ -169,18 +168,6 @@ def piramideGauss(imagen, niveles, borde=cv2.BORDER_DEFAULT):
     return gp
 
 def show_pyr(imgs):
-    """
-
-    Función que muestra una serie de imágenes que recibe en una lista por
-    parámetro en forma de pirámide.
-    Como requisito para su correcto funcionamiento, las imágenes deben
-    decrementar su tamaño en la mitad a medida que ocupan una posición posterior
-    en la lista.
-
-    Devuelve una sola imagen con forma de pirámide donde se encuentran todas las
-    recibidas.
-
-    """
 
     # Se crea una imagen inicialmente vacía que albergará todas las subimágenes
     # que se reciben.
@@ -267,8 +254,8 @@ def sobremuestrearDuplicar(imagen):
         
     return gaussiana(dcols.T, 3, -1)
 
-def piramideLaplaciana(imagen, niveles):
-    pg = piramideGauss(imagen, niveles)
+def piramideLaplaciana(imagen, niveles, borde= cv2.BORDER_DEFAULT):
+    pg = piramideGauss(imagen, niveles, borde)
     pl = [pg[niveles]]
     for i in range(niveles, 0, -1):
         gUp = sobremuestrearDuplicar(pg[i])
@@ -277,6 +264,7 @@ def piramideLaplaciana(imagen, niveles):
         l = cv2.subtract(pg[i-1], gUpRes)
         #l = convolucionGaussiana(l, 3, -1)
         pl.append(l)
+    pl = np.flip(pl)
     return pl
 
 
@@ -377,20 +365,20 @@ def ejercicio2b():
     print("Piramide laplaciana")
     print()
     
-    piramide = piramideLaplaciana(pez, 4)
+    piramide = piramideLaplaciana(perro, 4)
     
-#    display_piramide(piramide, False)
-    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect", "a","a"]
-    representarImagenes(piramide, titulos, 1)
-#    piramide = piramideLaplaciana(perro, 4, cv2.BORDER_REPLICATE)
+    imgs = [show_pyr(piramide)]
     
-#    imgs.append(show_pyr(piramideLaplaciana(pez, 4, cv2.BORDER_REPLICATE)))
-#
-#    imgs.append(show_pyr(piramideLaplaciana(pez, 4, cv2.BORDER_REFLECT)))
-#    
-#    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
-#    
-#    representarImagenes(imgs, titulos, 1)
+    piramide = piramideLaplaciana(perro, 4, cv2.BORDER_REPLICATE)
+    
+    imgs.append(show_pyr(piramideLaplaciana(perro, 4, cv2.BORDER_REPLICATE)))
+
+    imgs.append(show_pyr(piramideLaplaciana(perro, 4, cv2.BORDER_REFLECT)))
+    
+    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
+    
+    representarImagenes(imgs, titulos, 1)
+
 #    
     
 #ejercicio1a()
@@ -399,4 +387,5 @@ def ejercicio2b():
 #input("Pulse ENTER para continuar")
 #ejercicio2a()
 #input("Pulse ENTER para continuar")
-ejercicio2b()
+#ejercicio2b()
+#input("Pulse ENTER para continuar")
