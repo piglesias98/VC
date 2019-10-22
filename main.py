@@ -2,7 +2,7 @@
 """
 Created on Sun Oct 20 14:22:29 2019
 
-@author: Paula
+@author: Paula Iglesias Ahualli
 """
 
 #Paquetes necesarios para la ejecución de la práctica
@@ -176,25 +176,27 @@ def piramideGauss(imagen, niveles, sigma=1, borde=cv2.BORDER_DEFAULT):
 def imagenPiramide(imgs):
     # Filas y columnas de la imagen.
     height, width= imgs[0].shape[:2]
-    # Se crea una imagen vacía con ancho = ancho de la primera + ancho de la segunda (mitad de la primera)
+    # La imagen final se crea con ancho= ancho(primera) + ancho(segunda)
+    # ancho(segunda) = 1/2 ancho(primera)
     img = np.zeros((height, width+math.ceil(width*0.5)))
-    # Se copia la primera imagen desde el punto de partida hasta el tamaño que
-    # tiene
     img[0:height, 0:width] = imgs[0]
-    # Se guarda la posición desde donde deben comenzar las imágenes
+    # Posición donde deben comenzar las imágenes
     init_col = width
     init_row = 0
-    # Número de imágenes
+    # n imágenes
     num_imgs = len(imgs)
+    
     # Se recorren el resto de imágenes para colocarlas donde corresponde
     for i in range(1, num_imgs):
-        # Se consigue el tamaño de la imagen actual
-        height, width= imgs[0].shape[:2]
+        # Filas y columnas de la imagen actual
+        height, width= imgs[i].shape[:2]
         # Se hace el copiado de la imagen actual como se ha hecho con la primera
         img[init_row:init_row+height, init_col:init_col+width] = imgs[i]
         # Se aumenta el contador desde donde se colocará la siguiente imagen
         init_row += height
+    
     return img
+
 
 #Aplica upsampling duplicando las filas y columnas de la imagen
 def sobremuestrearDuplicar(imagen):
@@ -244,7 +246,8 @@ def busquedaRegiones(imagen, nEscalas, sigma, tam):
         sigma = sigma + 1
     return escalas
 
-
+#para cada píxel de la imagen, miramos sus ocho vecinos
+#Si alguno es mayor que el píxel referencia, lo ponemos  a 0.
 def supresionNoMaximos(imagen):
     img = np.copy(imagen)
     height, width = imagen.shape[:2]
@@ -257,6 +260,7 @@ def supresionNoMaximos(imagen):
                supresion[i+1,j+1] = img[i+1, j+1]
     return supresion
 
+#en cada pixel de img_max que supere el umbral se pinta un círculo en img
 def circulos(imagen, img_max ,sigma):
     umbral = 100
     img = np.copy(imagen)
@@ -271,6 +275,7 @@ def circulos(imagen, img_max ,sigma):
                 cv2.circle(img, (j,i), radio, color)
     return img
 
+#Calcula H con la siguiente fórmula H=I1*G1+I2*(1-G2)
 def imagenesHibridas(imagen1, imagen2, lFreq, hFreq):
     img1= np.copy(imagen1)
     img2 = np.copy(imagen2)
@@ -284,7 +289,10 @@ def imagenesHibridas(imagen1, imagen2, lFreq, hFreq):
     return i1, i2, h
 
 
+"""
+Ejercicios
 
+"""
 
 #EJERCICIO 1 Aol
 def ejercicio1a():
@@ -471,16 +479,16 @@ def ejercicio3b():
 
     
 
-#ejercicio1a()
-#input("Pulse ENTER para continuar")
-#ejercicio1b()
-#input("Pulse ENTER para continuar")
-#ejercicio2a()
-#input("Pulse ENTER para continuar")
-#ejercicio2b()
-#input("Pulse ENTER para continuar")
-#ejercicio2c()
-#input("Pulse ENTER para continuar")
-#ejercicio3a()
-#input("Pulse ENTER para continuar")
-#ejercicio3b()
+ejercicio1a()
+input("Pulse ENTER para continuar")
+ejercicio1b()
+input("Pulse ENTER para continuar")
+ejercicio2a()
+input("Pulse ENTER para continuar")
+ejercicio2b()
+input("Pulse ENTER para continuar")
+ejercicio2c()
+input("Pulse ENTER para continuar")
+ejercicio3a()
+input("Pulse ENTER para continuar")
+ejercicio3b()
