@@ -360,7 +360,7 @@ def circulos(imagen, img_max ,sigma):
     #Recorremos cada pixel
     for i in range(height):
         for j in range(width):
-            if img_max[i,j]>90:
+            if img_max[i,j]>100:
                 radio = int(math.sqrt(2)  * sigma)
                 color = (255,0,0)
                 cv2.circle(img, (j,i), radio, color)
@@ -512,10 +512,13 @@ def ejercicio2c():
     print("Ejercicio 2 - Apartado C")
     print("Búsqueda de regiones")
     print()
+    escalas = busquedaRegiones(gato, 5, 5, 3)
+    titulo=["Escala 1"]
+    for i in range(4):
+        titulo.append(str(i))
     
-    escalas = busquedaRegiones(avion, 3, 3, 3)
 #    res = cv2.hconcat(escalas)
-    representarImagenes(escalas, ["img", "img", "img"], 1)
+    representarImagenes(escalas,titulo, 5)
     
     
 def ejercicio3a():
