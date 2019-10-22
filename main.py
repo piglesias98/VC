@@ -136,7 +136,7 @@ def derivada(imagen, tam, dx, dy, borde=cv2.BORDER_DEFAULT):
     #calculamos los kernels
     kernelx, kernely = cv2.getDerivKernels(dx,dy,tam, borde)
     #Realizamos la convolucion
-    convImg=convolucion(img, kernelx, kernely)
+    convImg=convolucion(img, kernelx, kernely, borde)
     return convImg
 
 def laplaciana(imagen, tam, borde=cv2.BORDER_DEFAULT):
@@ -267,55 +267,111 @@ def piramideLaplaciana(imagen, niveles, borde= cv2.BORDER_DEFAULT):
     pl = np.flip(pl)
     return pl
 
-def busquedaRegiones(imagen, escalas, sigma):
+def busquedaRegiones(imagen, nEscalas, sigma, tam):
+#    img = np.copy(imagen)
+#    for i in range(escalas):
+#        imgG = gaussiana(img, sigma, -1)
+#        imgL = laplaciana(imgG, sigma)
+#        #imgL = cv2.Laplacian(imgG, sigma)
+#        nImg= np.copy(imgL)
+#        nImg = cv2.normalize(imgL,  nImg, 0, 255, cv2.NORM_MINMAX)
+#        #Aplicamos el cuadrado
+#        cImg=np.copy(nImg)
+#        cImg = np.square(nImg)
+#    #Realizamos la supresión de no máximos
+#    sImg = np.copy(cImg)
+#    sImg= supresionNoMaximos(cImg)
+#    #Mostrar las regiones encontradas con sus correspondientes escalas
+#    return circulos(sImg, sigma)
     img = np.copy(imagen)
-    for i in range(escalas):
-        imgG = convolucionGaussiana(img, sigma, -1)
-        imgL = convolucionLaplaciana(imgG, sigma)
-        #imgL = cv2.Laplacian(imgG, sigma)
-        nImg= np.copy(imgL)
-        nImg = cv2.normalize(imgL,  nImg, 0, 255, cv2.NORM_MINMAX)
-        #Aplicamos el cuadrado
-        cImg=np.copy(nImg)
-        cImg = np.square(nImg)
-    #Realizamos la supresión de no máximos
-    sImg = np.copy(cImg)
-    sImg= supresionNoMaximos(cImg)
-    #Mostrar las regiones encontradas con sus correspondientes escalas
-    return circulos(sImg, sigma)
-
+    escalas = []
+    for i in range(nEscalas):
+        lg = laplacianaGaussiana(img, tam, sigma)
+        sq = np.square(lg)
+        cv2.normalize(sq, sq, 0, 255, cv2.NORM_MINMAX)
+        sq = sq.astype(np.uint8)
+        supresion = supresionNoMaximos(sq)
+        final = circulos(img, supresion,sigma)
+        escalas.append(final)
+        sigma = sigma +1
+    return escalas
+        
+        
+def dibujarCirculos(img, img_max, sigma):
+    # Grosor del círculo
+    GROSOR = 1
+    # Color del circulo
+    COLOR = 250 if img.shape[2] == 1 else [0, 255, 0]
+    # Constante proporcionalidad al radio del círculo
+    K = 3
+    # Reescalamos
+#    img = reescalar(img)
+#    img_max = reescalar(img)
+    # Dimensiones
+    N, M, C = img.shape
+    # Umbral para considerar centro
+    UMBRAL = 125 * C
+    # Radio del círculo
+    radio = round(K * sigma)
+    # Buscamos los píxeles con valor > UMBRAL
+    for i in range(N):
+        for j in range(M):
+            # Con que en algún canal sea > UMBRAL nos vale
+            if np.sum(img_max[i, j]) > UMBRAL:
+                # Dibujamos el círculo
+                cv2.circle(img, (j, i), radio, color=COLOR, thickness=GROSOR)
+    return img
 
 def supresionNoMaximos(imagen):
+#    height, width = imagen.shape[:2]
+#    nueva= np.copy(imagen)
+#    img = np.copy(imagen)
+#    #Recorremos cada pixel
+#    for i in range(height):
+#        for j in range(width):
+#            nueva[(i-1):(i+2), (j-1):(j+2)] = np.where(img[(i-1):(i+2), (j-1):(j+2)] > img[i,j], 0, nueva[(i-1):(i+2), (j-1):(j+2)])
+##           v_max = np.amax(img[(i - 1):(i + 2), (j - 1):(j + 2)])
+##            if v_max > imagen[i, j]: nueva[i - 1, j - 1] = 0
+#    return nueva
+        # Copia
+#    img = np.copy(imagen)
+#    # Dimensiones
+#    N, M= img.shape
+#    for i in range(0, N):
+#        for j in range(0, M):
+#            # Obtenemos el máximo del entorno
+#            v_max = np.amax(img[(i - 1):(i + 2), (j - 1):(j + 2)])
+#            # Si no es el máximo local pone a 0
+#            if v_max > img[i, j]: img[i - 1, j - 1] = 0
+#    return img
+    img = np.copy(imagen)
     height, width = imagen.shape[:2]
-    nueva= np.copy(imagen)
-    #Recorremos cada pixel
-    for i in range(height):
-        for j in range(width):
-            nueva[i-1:i+2, j-1:j+2] = np.where(imagen[i-1:i+2, j-1:j+2] > imagen[i,j], 0, nueva[i-1:i+2, j-1:j+2])
-    return nueva
+    supresion= np.zeros((height, width))
+    for i in range(height -2):
+       for j in range(width -2):
+           maximum = np.amax(img[i:(i+3), j:(j+3)])
+           if maximum == img [i+1,j+1]:
+               supresion[i+1,j+1] = img[i+1, j+1]
+    return supresion
 
-def circulos(imagen,sigma):
+def circulos(imagen, img_max ,sigma):
     img = np.copy(imagen)
     height, width = imagen.shape[:2]
     #Recorremos cada pixel
     for i in range(height):
         for j in range(width):
-            if img[i,j]>124:
-                radio = int(math.sqrt(2) * sigma)
-                color = (255, 0, 0)
-                cv2.circle(img, (i,j), radio, color)
+            if img_max[i,j]>90:
+                radio = int(math.sqrt(2)  * sigma)
+                color = (255,0,0)
+                cv2.circle(img, (j,i), radio, color)
     return img
 
 def imagenesHibridas(imagen1, imagen2, lFreq, hFreq):
     img1= np.copy(imagen1)
     img2 = np.copy(imagen2)
     # Obtenemos I1 (baja frecuencia)
-#    g1 = cv2.getGaussianKernel(lFreq, -1)
-#    i1 = cv2.sepFilter2D(img1, -1, g1, g1)
     i1 = gaussiana(img1, lFreq)
     # Obtenemos I2 (alta frecuencia)
-#    g2 = cv2.getGaussianKernel(hFreq, -1)
-#    g2 = cv2.sepFilter2D(img2, -1, g2, g2)
     g2 = gaussiana(img2, hFreq)
     i2 =  img2 - g2
     # Hibridamos Imagen I1+I2
@@ -370,6 +426,18 @@ def ejercicio1a():
         tit = "sigma = "+str(i)+" Dx=1, Dy=1" 
         titulos.append(tit)
         
+        derivadas.append(derivada(gato, i, 1, 0, cv2.BORDER_CONSTANT))
+        tit = "sigma = "+str(i)+" Dx=1, Dy=0" + " Borde: Constant"
+        titulos.append(tit)
+        
+        derivadas.append(derivada(gato, i, 0, 1, cv2.BORDER_CONSTANT))
+        tit = "sigma = "+str(i)+" Dx=0, Dy=1" + " Borde: Constant"
+        titulos.append(tit)
+        
+        derivadas.append(derivada(gato, i, 1, 1, cv2.BORDER_CONSTANT))
+        tit = "sigma = "+str(i)+" Dx=1, Dy=1" + " Borde: Constant"
+        titulos.append(tit)
+        
     representarImagenes(derivadas, titulos, 3)
     derivadas.clear()
     
@@ -411,7 +479,7 @@ def ejercicio2a():
 
     imgs.append(show_pyr(piramideGauss(perro, 4, cv2.BORDER_REFLECT)))
     
-    titulos = ["Si bordes","Borde = Replicate","Borde = Reflect"]
+    titulos = ["Sin bordes","Borde = Replicate","Borde = Reflect"]
     
     representarImagenes(imgs, titulos, 1)
     titulos.clear()
@@ -437,13 +505,17 @@ def ejercicio2b():
     
     representarImagenes(imgs, titulos, 1)
     imgs.clear()
-    piramide.clear()
+#    piramide.clear()
 
 
 def ejercicio2c():
     print("Ejercicio 2 - Apartado C")
     print("Búsqueda de regiones")
     print()
+    
+    escalas = busquedaRegiones(avion, 3, 3, 3)
+#    res = cv2.hconcat(escalas)
+    representarImagenes(escalas, ["img", "img", "img"], 1)
     
     
 def ejercicio3a():
@@ -452,7 +524,7 @@ def ejercicio3a():
     print()
     
     #Ejemplo perro gato
-    i1, i2, h = imagenesHibridas(gato ,perro, 5, 9)
+    i1, i2, h = imagenesHibridas(gato ,perro, 9, 5)
     titulos = ["Baja", "Alta", "Híbrida"]
     representarImagenes([i1, i2, h], titulos, 3)
     
@@ -462,14 +534,15 @@ def ejercicio3a():
     representarImagenes([i1, i2, h], titulos, 3)
     
     #Ejemplo pez submarino
-    i1, i2, h = imagenesHibridas(submarino ,pez, 5, 7)
+    i1, i2, h = imagenesHibridas(submarino ,pez, 9, 7)
     titulos = ["Baja", "Alta", "Híbrida"]
     representarImagenes([i1, i2, h], titulos, 3)
     
     #Ejemplo pájaro avión
-    i1, i2, h = imagenesHibridas(pajaro ,avion, 5, 7)
+    i1, i2, h = imagenesHibridas(pajaro ,avion, 5, 3)
     titulos = ["Baja", "Alta", "Híbrida"]
     representarImagenes([i1, i2, h], titulos, 3)
+    
     
 def ejercicio3b():
     print("Ejercicio 3 - Apartado B")
@@ -479,9 +552,26 @@ def ejercicio3b():
     #Ejemplo pájaro avión
     i1, i2, h = imagenesHibridas(pajaro ,avion, 5, 3)
     pir = piramideGauss(h, 4, 5)
+    representarImagenes([show_pyr(pir)], ["Piramide Pájaro-Avión"])
+    #Ejemplo pájaro avión
+    i1, i2, h = imagenesHibridas(marilyn ,einstein, 3, 3)
+    pir = piramideGauss(h, 4, 3)
+    representarImagenes([show_pyr(pir)], ["Piramide Marilyn-Einstein"])
+    #Ejemplo pez submarino
+    i1, i2, h = imagenesHibridas(submarino ,pez, 9, 7)
+    pir = piramideGauss(h, 4, 7)
+    representarImagenes([show_pyr(pir)], ["Piramide Pez-Submarino"])
+
     
-    representarImagenes([show_pyr(pir)], ["piramide"])
-    
+#escala = np.square(laplacianaGaussiana(pajaro, 3, 1))
+##plt.imshow(escala, cmap="gray")
+#supresion = supresionNoMaximos(escala)
+#plt.imshow(supresion, cmap="gray")
+#escala = circulos(escala, supresion,3)
+#plt.imshow("escala", cmap="gray")
+#escalas.append(escala)
+#sigma = sigma +1
+
 #ejercicio1a()
 #input("Pulse ENTER para continuar")
 #ejercicio1b()
@@ -490,6 +580,37 @@ def ejercicio3b():
 #input("Pulse ENTER para continuar")
 #ejercicio2b()
 #input("Pulse ENTER para continuar")
+ejercicio2c()
+#input("Pulse ENTER para continuar")
 #ejercicio3a()
 #input("Pulse ENTER para continuar")
-ejercicio3b()
+#ejercicio3b()
+    
+#escala = np.square(laplacianaGaussiana(pajaro, 3,17))
+#escala = cv2.normalize(escala,  escala, 0, 255, cv2.NORM_MINMAX)
+#height, width = pajaro.shape[:2]
+#nueva= np.copy(pajaro)
+#img = np.copy(pajaro)
+##Recorremos cada pixel
+#for i in range(height):
+#    for j in range(width):
+#         nueva[(i-1):(i+2), (j-1):(j+2)] = np.where(img[(i-1):(i+2), (j-1):(j+2)] > img[i,j], 0, nueva[(i-1):(i+2), (j-1):(j+2)])
+##        v_max = np.amax(img[(i - 1):(i + 2), (j - 1):(j + 2)])
+##            if v_max > imagen[i, j]: nueva[i - 1, j - 1] = 0
+#plt.imshow(nueva, cmap="gray")
+#nEscalas = 5
+#tam=3
+#sigma=1
+#img = np.copy(pajaro)
+#escalas = []
+#for i in range(nEscalas):
+#    lg = laplacianaGaussiana(img, tam, sigma)
+#    sq = np.square(lg)
+#    cv2.normalize(sq, sq, 0, 255, cv2.NORM_MINMAX)
+#    sq = sq.astype(np.uint8)
+#    supresion = supresionNoMaximos(sq)
+#    final = circulos(img, supresion,sigma)
+#    escalas.append(final)
+#    sigma = sigma +1
+#    
+#representarImagenes(escalas, ["img", "img", "img", "img", "img"], 1)
