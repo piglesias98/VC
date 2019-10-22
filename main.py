@@ -17,8 +17,8 @@ Configuraciones previas
 """
 
 cmap = cv2.COLOR_RGB2GRAY
-path = "C:\\Users\\Paula\\Documents\\VC\\practica1\\images\\"
-
+#path = "C:\\Users\\Paula\\Documents\\VC\\practica1\\images\\"
+path ="./images/"
 #Función que asigna un esquema de colores. Por defecto escala de grises
 def set_c_map(img, cmap = cv2.COLOR_RGB2GRAY):
     img = cv2.cvtColor(img, cmap)
