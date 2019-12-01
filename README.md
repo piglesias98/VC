@@ -6,3 +6,5 @@ Filtrado y Detección de Regiones
 
 ## Práctica 2
 Redes neuronales convolucionales
+- Cifar
+- Caltech
