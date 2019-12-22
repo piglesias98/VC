@@ -8,3 +8,6 @@ Filtrado y Detección de Regiones
 Redes neuronales convolucionales
 - Cifar
 - Caltech
+
+## Práctica 3
+Detección de puntos relevantes y Construcción de panoramas
